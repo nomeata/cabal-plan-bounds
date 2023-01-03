@@ -1,11 +1,8 @@
 cabal-plan-bounds: generate cabal bounds from actual build plans
 ================================================================
 
-TL;DR: Updates the `.cabal` file `build-depends` and `tested-with` based on the
-`build.json` of actual build paths. Builds upon [cabal-fmt] to edit the .cabal
-file in place
+TL;DR: Updates the `.cabal` file’s `build-depends` and (not yet) `tested-with` based on the
+`build.json` of actual build paths.
 
-[cabal-fmt]: https://github.com/phadej/cabal-fmt
-
-
-TODO: Explain the issue and how this looks.
+TODO: Explain the issue and how this looks. Until then,
+see https://discourse.haskell.org/t/dependency-version-bounds-are-a-lie/5522/22?u=nomeata
