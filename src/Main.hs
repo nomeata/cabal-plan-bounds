@@ -9,6 +9,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text as T
 import Options.Applicative
 import Control.Monad (join, unless)
+import Data.List
 import Data.Maybe
 import Cabal.Plan
 
@@ -72,7 +73,10 @@ work planfiles cabalfile = do
 
     plans <- mapM decodePlanJson planfiles
 
-    let deps = M.unionsWith C.unionVersionRanges $ map (fmap C.majorBoundVersion) $ map (depsOf pname) plans
+    let deps = fmap (foldl1 C.unionVersionRanges . map C.majorBoundVersion . nub . sort) $
+            M.unionsWith (++) $
+            map (fmap pure) $
+            map (depsOf pname) plans
 
     let contents' = replaceDependencies (\pn vr -> fromMaybe vr $ M.lookup pn deps) contents
 
