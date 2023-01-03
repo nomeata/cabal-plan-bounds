@@ -1,0 +1,31 @@
+cabal-version:      3.0
+name:               cabal-plan-bounds
+version:            0.1
+-- synopsis:
+-- description:
+license:            BSD-2-Clause
+license-file:       LICENSE
+author:             Joachim Breitner
+maintainer:         mail@joachim-breitner.de
+-- copyright:
+category:           Distribution
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+
+executable cabal-plan-bounds
+    import:           warnings
+    main-is:          Main.hs
+    other-modules:    ReplaceDependencies
+    -- other-extensions:
+    build-depends:    base, Cabal-syntax, cabal-plan,
+      -- a comment in the middle of te build depends
+      optparse-applicative
+      , containers, text
+    build-depends:   bytestring
+    build-depends:
+    hs-source-dirs:   src/
+    default-language: GHC2021
