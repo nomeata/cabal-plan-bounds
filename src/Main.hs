@@ -64,6 +64,14 @@ depsOf pname plan = M.fromList -- TODO: What if different units of the package h
  ]
 
 
+unionMajorBounds :: [C.Version] -> C.VersionRange
+unionMajorBounds [] = C.anyVersion
+unionMajorBounds (v0:vs) = foldl go (C.majorBoundVersion v0) vs
+  where
+    go vr v | C.withinRange v vr = vr
+            | otherwise = C.unionVersionRanges vr (C.majorBoundVersion v)
+
+
 work :: [FilePath] -> FilePath -> IO ()
 work planfiles cabalfile = do
     contents <- BS.readFile cabalfile
@@ -73,7 +81,7 @@ work planfiles cabalfile = do
 
     plans <- mapM decodePlanJson planfiles
 
-    let deps = fmap (foldl1 C.unionVersionRanges . map C.majorBoundVersion . nub . sort) $
+    let deps = fmap (unionMajorBounds . sort) $
             M.unionsWith (++) $
             map (fmap pure) $
             map (depsOf pname) plans
