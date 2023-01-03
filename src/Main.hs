@@ -8,7 +8,7 @@ import qualified Data.Set as S
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text as T
 import Options.Applicative
-import Control.Monad (join)
+import Control.Monad (join, unless)
 import Data.Maybe
 import Cabal.Plan
 
@@ -74,5 +74,8 @@ work planfiles cabalfile = do
 
     let deps = M.unionsWith C.unionVersionRanges $ map (fmap C.majorBoundVersion) $ map (depsOf pname) plans
 
+    let contents' = replaceDependencies (\pn vr -> fromMaybe vr $ M.lookup pn deps) contents
 
-    BS.putStrLn $ replaceDependencies (\pn vr -> fromMaybe vr $ M.lookup pn deps) contents
+    unless (contents == contents') $
+        -- TODO: Use atomic-write
+        BS.writeFile cabalfile contents'
