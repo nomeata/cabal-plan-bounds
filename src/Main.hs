@@ -25,8 +25,8 @@ main :: IO ()
 main = join . customExecParser (prefs showHelpOnError) $
   info (helper <*> parser)
   (  fullDesc
-  <> header "General program title/description"
-  <> progDesc "What does this thing do?"
+  <> header "Derives dependency bounds from build plans"
+--  <> progDesc "What does this thing do?"
   )
   where
     parser :: Parser (IO ())
@@ -37,7 +37,7 @@ main = join . customExecParser (prefs showHelpOnError) $
             (metavar "PLAN" <> help "plan file to read (.json)"))
         <*> many (strOption
             (short 'c' <> long "cabal" <>
-             metavar "CABALFILE.cabal" <> help "cabal file to pdate (.cabal)"))
+             metavar "CABALFILE" <> help "cabal file to pdate (.cabal)"))
 
     is :: String -> ReadM FilePath
     is suffix = maybeReader $ \s -> do
