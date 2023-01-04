@@ -1,17 +1,28 @@
 cabal-version:      3.0
 name:               cabal-plan-bounds
 version:            0.1
--- synopsis:
--- description:
+synopsis:           Derives cabal bounds from build plans
+description:
+  Manually curated dependency version ranges tend to become a lie: They likely
+  include versions of your the dependencies that are neither longer tested by your CI
+  system, or implied by compatibility with the tested versions.
+
+  So the conclusion must be to **not write build-depends ranges by hand.**
+  Which is an unpleaseant chore instead.
+
+  Instead, **derive the build-depends from your actual CI builds**.
+
+  This tool helps with that. See the README for more information.
+
 license:            BSD-2-Clause
 license-file:       LICENSE
 author:             Joachim Breitner
 maintainer:         mail@joachim-breitner.de
--- copyright:
+homepage:           https://github.com/nomeata/cabal-plan-bounds
+copyright:          2023
 category:           Distribution
 build-type:         Simple
-extra-doc-files:    CHANGELOG.md
--- extra-source-files:
+extra-doc-files:    README.md CHANGELOG.md
 
 common warnings
     ghc-options: -Wall
@@ -29,3 +40,7 @@ executable cabal-plan-bounds
     build-depends:    bytestring ^>=0.10.12.0 || ^>=0.11.3.1
     hs-source-dirs:   src/
     default-language: Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/nomeata/cabal-plan-bounds
