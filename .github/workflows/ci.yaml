@@ -38,7 +38,7 @@ jobs:
     - run: ./build-all.sh
     - run: git diff
     - name: Fail if .cabal file was changed
-      run: git diff-files --quiet && exit 1
+      run: git diff-files --quiet || exit 1
 
 
 
