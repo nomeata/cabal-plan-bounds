@@ -25,7 +25,7 @@ The solution
 ------------
 
 So the conclusion must be to **not write build-depends ranges by hand.**
-Which is an unpleaseant chore instead.
+Which is an unpleaseant chore anyway.
 
 Instead, **derive the build-depends from your actual CI builds**.
 
@@ -122,17 +122,17 @@ Usage: cabal-plan-bounds [PLAN] [-c|--cabal CABALFILE]
 Available options:
   -h,--help                Show this help text
   PLAN                     plan file to read (.json)
-  -c,--cabal CABALFILE     cabal file to pdate (.cabal)
+  -c,--cabal CABALFILE     cabal file to update (.cabal)
 ```
 
 Features and limitations
 ------------------------
 
-* It edits the `.cabal` file in place
+* It edits the `.cabal` file in place.
 
 * It leaves the `.cabal` file as is: No reformatting, all comments are preserved.
 
-* Only the `build-dependens` fiels are touched. They are reformatted (one dependency per line).
+* Only the `build-depends` fields are touched. They are reformatted (one dependency per line).
 
   It does not add, remove or reorder the packages mentioned in the dependencies.
 
