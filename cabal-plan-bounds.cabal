@@ -7,10 +7,10 @@ description:
   include versions of your the dependencies that are neither longer tested by your CI
   system, or implied by compatibility with the tested versions.
 
-  So the conclusion must be to **not write build-depends ranges by hand.**
+  So the conclusion must be to __not write build-depends ranges by hand!__
   Which is an unpleaseant chore instead.
 
-  Instead, **derive the build-depends from your actual CI builds**.
+  Instead, __derive the build-depends from your actual CI builds!__
 
   This tool helps with that. See the README for more information.
 
