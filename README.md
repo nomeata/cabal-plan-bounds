@@ -9,14 +9,14 @@ The problem
 -----------
 
 Manually curated dependency version ranges tend to become a lie: They likely
-include versions of your the dependencies that are neither longer tested by your CI
+include versions of your dependencies that are neither longer tested by your CI
 system, or implied by compatibility with the tested versions (by way of the [PVP]).
 
 Typically, these are versions near the lower edge of the bounds, but can also
 be on the upper end (e.g. when they are packaged with GHC and Cabal prefers installed versions, or when they are not actually installable yet).
 
 There are ways to mitigate this problem, such as being very careful, and maybe
-using Cabals new [`--prefer-oldest`] flag. But these are not reliable.
+using Cabal's new [`--prefer-oldest`] flag. But these are not reliable.
 
 [PVP]: https://pvp.haskell.org/
 [`--prefer-oldest`]: https://cabal.readthedocs.io/en/latest/cabal-project.html#cfg-field-prefer-oldest
@@ -25,7 +25,7 @@ The solution
 ------------
 
 So the conclusion must be to **not write build-depends ranges by hand.**
-Which is an unpleaseant chore instead.
+Which is an unpleasant chore anyway.
 
 Instead, **derive the build-depends from your actual CI builds**.
 
@@ -122,17 +122,17 @@ Usage: cabal-plan-bounds [PLAN] [-c|--cabal CABALFILE]
 Available options:
   -h,--help                Show this help text
   PLAN                     plan file to read (.json)
-  -c,--cabal CABALFILE     cabal file to pdate (.cabal)
+  -c,--cabal CABALFILE     cabal file to update (.cabal)
 ```
 
 Features and limitations
 ------------------------
 
-* It edits the `.cabal` file in place
+* It edits the `.cabal` file in place.
 
 * It leaves the `.cabal` file as is: No reformatting, all comments are preserved.
 
-* Only the `build-dependens` fiels are touched. They are reformatted (one dependency per line).
+* Only the `build-depends` fields are touched. They are reformatted (one dependency per line).
 
   It does not add, remove or reorder the packages mentioned in the dependencies.
 
@@ -151,9 +151,9 @@ Future work (contributions welcome!)
 
 * Proper error handling, e.g. while parsing.
 * A test suite
-* Printing a nice human readable summary of dependency changes.
+* Printing a nice human-readable summary of dependency changes.
 * A `--dry-run` mode that does not touch the `.cabal` file.
 * A `--check` mode that does not touch the `.cabal` file, but fails if it would
   change it (for CI).
-* Update the `tested-with` field accordig to the compiler versions used.
+* Update the `tested-with` field according to the compiler versions used.
 * Release a statically built binary, for faster use in other project’s CI systems.
