@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    braches:
+    - main
+  pull-request:
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: '8.10.7'
+    - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: '9.0.2'
+    - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: '9.2.5'
+    - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: '9.4.4'
+
+    - name: cache cabal store
+      uses: actions/cache@v2
+      with:
+        key: cabal-store-${{ runner.os }}-${{ github.sha }}
+        path: ~/.cabal/store
+        restore-keys: cabal-store-${{ runner.os }}-
+
+    - run: ./build-all.sh
+    - run: git diff
+    - name: Fail if .cabal file was changed
+      run: git diff-files --quiet && exit 1
+
+
+
