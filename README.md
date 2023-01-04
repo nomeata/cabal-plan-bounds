@@ -156,3 +156,4 @@ Future work (contributions welcome!)
 * A `--check` mode that does not touch the `.cabal` file, but fails if it would
   change it (for CI).
 * Update the `tested-with` field accordig to the compiler versions used.
+* Release a statically built binary, for faster use in other project’s CI systems.
