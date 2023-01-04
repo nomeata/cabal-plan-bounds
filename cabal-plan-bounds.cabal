@@ -30,6 +30,7 @@ common warnings
 executable cabal-plan-bounds
     import:           warnings
     main-is:          Main.hs
+    ghc-options:      -Wall
     other-modules:    ReplaceDependencies
     build-depends:    base ^>=4.14.3.0 || ^>=4.15.1.0 || ^>=4.16.4.0 || ^>=4.17.0.0,
                       Cabal-syntax ^>=3.8.1.0,
