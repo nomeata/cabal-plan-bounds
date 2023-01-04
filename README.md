@@ -40,14 +40,14 @@ Simple example
 For a simple example, you can just call `cabal build` with different compilers:
 
 
-    $ cabal build -w ghc-8.10.7 --builddir dist-ghc-8.10.7
-    $ cabal build -w ghc-9.0.2 --builddir dist-ghc-9.0.2
-    $ cabal build -w ghc-9.2.5 --builddir dist-ghc-9.2.5
-    $ cabal build -w ghc-9.4.4 --builddir dist-ghc-9.4.4
+    $ cabal build -w ghc-8.10.7 --builddir dist-8.10.7
+    $ cabal build -w ghc-9.0.2 --builddir dist-9.0.2
+    $ cabal build -w ghc-9.2.5 --builddir dist-9.2.5
+    $ cabal build -w ghc-9.4.4 --builddir dist-9.4.4
 
 and then update the cabal file
 
-    $ cabal-plan-bounds dist-ghc-{8.10.7,9.0.2,9.2.5,9.4.4}/cache/plan.json -c cabal-plan-bounds.cabal
+    $ cabal-plan-bounds dist-{8.10.7,9.0.2,9.2.5,9.4.4}/cache/plan.json -c cabal-plan-bounds.cabal
 
 This will lead to the following diff:
 
