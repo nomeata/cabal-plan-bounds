@@ -8,7 +8,7 @@ import qualified Data.Set as S
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text as T
 import Options.Applicative
-import Control.Monad (join, unless)
+import Control.Monad
 import Data.List
 import Data.Maybe
 import Cabal.Plan
@@ -32,18 +32,17 @@ main = join . customExecParser (prefs showHelpOnError) $
     parser :: Parser (IO ())
     parser =
       work
-        <$> many (strOption
-            (  long "plan"
-            <> short 'i'
-            <> metavar "FILE"
-            <> help "plan file to read (.json)"
-            ))
-        <*> strOption
-            (  long "cabal"
-            <> short 'c'
-            <> metavar "FILE"
-            <> help "cabal file to edit (.cabal)"
-            )
+        <$> many (argument
+            (is ".json")
+            (metavar "PLAN" <> help "plan file to read (.json)"))
+        <*> many (strOption
+            (short 'c' <> long "cabal" <>
+             metavar "CABALFILE.cabal" <> help "cabal file to pdate (.cabal)"))
+
+    is :: String -> ReadM FilePath
+    is suffix = maybeReader $ \s -> do
+        guard (suffix `isSuffixOf` s)
+        pure s
 
 cabalPackageName :: BS.ByteString -> C.PackageName
 cabalPackageName contents =
@@ -66,28 +65,34 @@ depsOf pname plan = M.fromList -- TODO: What if different units of the package h
 
 unionMajorBounds :: [C.Version] -> C.VersionRange
 unionMajorBounds [] = C.anyVersion
-unionMajorBounds (v0:vs) = foldl go (C.majorBoundVersion v0) vs
-  where
-    go vr v | C.withinRange v vr = vr
-            | otherwise = C.unionVersionRanges vr (C.majorBoundVersion v)
+unionMajorBounds vs = foldr1 C.unionVersionRanges (map C.majorBoundVersion vs)
+
+-- assumes sorted input
+pruneVersionRanges :: [C.Version] -> [C.Version]
+pruneVersionRanges [] = []
+pruneVersionRanges [v] = [v]
+pruneVersionRanges (v1:v2:vs)
+  | v2 `C.withinRange` C.majorBoundVersion v1 = pruneVersionRanges (v1 : vs)
+  | otherwise                                 = v1 : pruneVersionRanges (v2 : vs)
 
 
-work :: [FilePath] -> FilePath -> IO ()
-work planfiles cabalfile = do
-    contents <- BS.readFile cabalfile
-
-    -- Figure out package name
-    let pname = cabalPackageName contents
-
+work :: [FilePath] -> [FilePath] -> IO ()
+work planfiles cabalfiles = do
     plans <- mapM decodePlanJson planfiles
 
-    let deps = fmap (unionMajorBounds . sort) $
-            M.unionsWith (++) $
-            map (fmap pure) $
-            map (depsOf pname) plans
+    forM_ cabalfiles $ \cabalfile -> do
+      contents <- BS.readFile cabalfile
 
-    let contents' = replaceDependencies (\pn vr -> fromMaybe vr $ M.lookup pn deps) contents
+      -- Figure out package name
+      let pname = cabalPackageName contents
 
-    unless (contents == contents') $
-        -- TODO: Use atomic-write
-        BS.writeFile cabalfile contents'
+      let deps = fmap (unionMajorBounds . pruneVersionRanges . sort) $
+              M.unionsWith (++) $
+              map (fmap pure) $
+              map (depsOf pname) plans
+
+      let contents' = replaceDependencies (\pn vr -> fromMaybe vr $ M.lookup pn deps) contents
+
+      unless (contents == contents') $
+          -- TODO: Use atomic-write
+          BS.writeFile cabalfile contents'
