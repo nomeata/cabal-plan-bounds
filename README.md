@@ -150,6 +150,7 @@ Future work (contributions welcome!)
 ------------------------------------
 
 * Proper error handling, e.g. while parsing.
+* A test suite
 * Printing a nice human readable summary of dependency changes.
 * A `--dry-run` mode that does not touch the `.cabal` file.
 * A `--check` mode that does not touch the `.cabal` file, but fails if it would
