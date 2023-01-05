@@ -23,7 +23,7 @@ jobs:
             ghc-version: 9.2.4
           - plan: ghc-9.4.4
             ghc-version: 9.4.4
-          - plan: stackge-nightly
+          - plan: stackage-nightly
             ghc-version: 9.4.4
 
     steps:
