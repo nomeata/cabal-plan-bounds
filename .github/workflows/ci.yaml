@@ -2,46 +2,84 @@ name: CI
 
 on:
   push:
-    braches:
+    branches:
     - main
   pull_request:
 
 jobs:
   Build:
     runs-on: ubuntu-latest
+    strategy:
+      # todo: calculate matrix automatically
+      # todo: derive ghc version from plan
+      matrix:
+        plans:
+          - plan: ghc-9.0.2
+            ghc-version: 9.0.2
+          - plan: ghc-9.2.4
+            ghc-version: 9.2.4
+          - plan: ghc-9.2.4
+            ghc-version: 9.2.4
+          - plan: ghc-9.4.4
+            ghc-version: 9.4.4
+          - plan: stackge-nightly.config
+            ghc-version: 9.4.4
+
     steps:
     - uses: actions/checkout@v3
 
-    # For now, one job with all compilers
-    # TODO: Multiple jobs, and copying the build plans into one final job
-    # TODO: Generate the jobs from the files in ci-configs/ dyamically
     - uses: haskell/actions/setup@v2
       with:
-        ghc-version: '8.10.7'
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.0.2'
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.2.4'
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.2.5'
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.4.4'
+        ghc-version: ${{ matrix.plans.ghc-version }}
 
     - name: cache cabal store
       uses: actions/cache@v3
       with:
-        key: cabal-store-${{ runner.os }}-${{ github.sha }}
+        key: cabal-store-${{ runner.os }}-${{ matrix.plans.ghc-version }}-${{ github.sha }}
         path: ~/.cabal/store
-        restore-keys: cabal-store-${{ runner.os }}-
+        restore-keys: cabal-store-${{ runner.os }}-${{ matrix.plans.ghc-version }}-
 
-    - run: ./build-all.sh
-    - run: git diff
+    - run: cabal build --ghc-options -Werror --project-file "ci-configs/$name.config"
+
+    - run: mv dist-newstyle/cache/plans.json plan-${{ matrix.plans.plan }}.json
+
+    - uses: actions/upload-artifact@v3
+        with:
+          name: plans
+          path: plan-${{ matrix.plans.plan }}.json
+
+  bounds:
+    runs-on: ubuntu-latest
+    name: Calculate cabal bounds
+    needs: Build
+    steps:
+    - uses: actions/checkout@v3
+
+    # Elsewhere, we would download this tool. Here, we build it (again)
+    - uses: haskell/actions/setup@v2
+      with:
+        ghc-version: ${{ 9.4.4 }}
+
+    - name: cache cabal store
+      uses: actions/cache@v3
+      with:
+        key: cabal-store-${{ runner.os }}-9.4.4-${{ github.sha }}
+        path: ~/.cabal/store
+        restore-keys: cabal-store-${{ runner.os }}-9.4.4-
+
+    - name: Load plans
+      uses: actions/download-artifact@v3
+      with:
+        name: plans
+        path: plans
+
+    - run: find plans/
+
+    - run: cabal -v0 run --project-file "ci-configs/ghc-9.4.4.config" cabal-plan-bounds -- plans/*.json -c cabal-plan-bounds.cabal
+
+    - run: git diff cabal-plan-bounds.cabal
     - name: Fail if .cabal file was changed
-      run: git diff-files --quiet || exit 1
+      run: git diff-files cabal-plan-bounds.cabal --quiet || exit 1
 
 
 
