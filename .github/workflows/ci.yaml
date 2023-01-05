@@ -126,7 +126,7 @@ jobs:
 
     - run: git diff cabal-plan-bounds.cabal
     - name: Fail if .cabal file was changed
-      run: git diff-files cabal-plan-bounds.cabal --quiet || exit 1
+      run: git diff-files --quiet cabal-plan-bounds.cabal|| exit 1
 
   release:
     name: Release binary
