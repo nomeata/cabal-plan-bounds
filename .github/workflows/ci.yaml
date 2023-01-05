@@ -70,7 +70,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Build
-      run: cabal build --ghc-options='-split-sections -optl-static' --enable-executable-static
+      run: cabal build --enable-executable-static
 
     - run: mv dist-newstyle/build/*/*/cabal-plan-bounds-*/x/cabal-plan-bounds/build/cabal-plan-bounds/cabal-plan-bounds .
 
