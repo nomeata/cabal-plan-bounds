@@ -55,6 +55,7 @@ jobs:
       run: |
         apk add --no-cache curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl git bash sudo binutils-gold
         apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static
+        apk add --no-cache file
 
     - uses: haskell/actions/setup@v2
       with:
