@@ -39,7 +39,7 @@ jobs:
         path: ~/.cabal/store
         restore-keys: cabal-store-${{ runner.os }}-${{ matrix.plans.ghc-version }}-
 
-    - run: cabal build --ghc-options -Werror --project-file "ci-configs/${{ matrix.plans.plan }}/name.config"
+    - run: cabal build --ghc-options -Werror --project-file "ci-configs/${{ matrix.plans.plan }}.config"
 
     - run: mv dist-newstyle/cache/plans.json plan-${{ matrix.plans.plan }}.json
 
