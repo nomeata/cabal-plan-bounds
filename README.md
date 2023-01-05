@@ -104,7 +104,7 @@ import: cabal.project
 import: https://www.stackage.org/nightly-2023-01-03/cabal.config
 ```
 
-(TODO: Probably these should also pin the `index-state` for reproducibility.)
+(Probably these should also pin the `index-state` for reproducibility -- up to you.)
 
 Now you can configure your CI system to run one job for each of these configs,
 collect the `plan.json` files, and finally check that the version bounds in your

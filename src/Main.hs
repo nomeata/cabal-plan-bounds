@@ -62,7 +62,6 @@ depsOf pname plan = M.fromList -- TODO: What if different units of the package h
  , let PkgId (PkgName depName) (Ver depVersion) = uPId depunit
  ]
 
-
 unionMajorBounds :: [C.Version] -> C.VersionRange
 unionMajorBounds [] = C.anyVersion
 unionMajorBounds vs = foldr1 C.unionVersionRanges (map C.majorBoundVersion vs)
@@ -91,7 +90,11 @@ work planfiles cabalfiles = do
               map (fmap pure) $
               map (depsOf pname) plans
 
-      let contents' = replaceDependencies (\pn vr -> fromMaybe vr $ M.lookup pn deps) contents
+      let new_deps pn vr
+            | pn == pname = C.anyVersion -- self-dependency
+            | otherwise   = fromMaybe vr $ M.lookup pn deps
+
+      let contents' = replaceDependencies new_deps contents
 
       unless (contents == contents') $
           -- TODO: Use atomic-write
