@@ -108,7 +108,8 @@ import: https://www.stackage.org/nightly-2023-01-03/cabal.config
 
 Now you can configure your CI system to run one job for each of these configs,
 collect the `plan.json` files, and finally check that the version bounds in your
-`.cabal` file match, and if not, complain or auto-update them.
+`.cabal` file match, and if not, complain or auto-update them. See the workflow
+file of this repository for an example.
 
 Usage
 -----
@@ -156,4 +157,3 @@ Future work (contributions welcome!)
 * A `--check` mode that does not touch the `.cabal` file, but fails if it would
   change it (for CI).
 * Update the `tested-with` field according to the compiler versions used.
-* Release a statically built binary, for faster use in other project’s CI systems.
