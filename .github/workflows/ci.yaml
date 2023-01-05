@@ -14,43 +14,43 @@ jobs:
       # todo: calculate matrix automatically
       # todo: derive ghc version from plan
       matrix:
-        plans:
-          - plan: ghc-8.10.7
-            ghc-version: 8.10.7
-          - plan: ghc-9.0.2
-            ghc-version: 9.0.2
-          - plan: ghc-9.2.4
-            ghc-version: 9.2.4
-          - plan: ghc-9.2.5
-            ghc-version: 9.2.5
-          - plan: ghc-9.4.4
-            ghc-version: 9.4.4
-          - plan: stackage-nightly
-            ghc-version: 9.4.4
+        plan:
+        - ghc-8.10.7
+        - ghc-9.0.2
+        - ghc-9.2.4
+        - ghc-9.2.5
+        - ghc-9.4.4
+        - stackage-nightly
 
     steps:
     - uses: actions/checkout@v3
 
+    - name: Detect GHC version
+      run: |
+        ver=$(grep -o -P '(?<=with-compiler: ghc-).*' ci-configs/${{ matrix.plan }}.config)
+        echo "Detected compiler version $ver in ci-configs/${{ matrix.plan }}.config"
+        echo "ghc_version=$ver" >> $GITHUB_ENV
+
     - uses: haskell/actions/setup@v2
       with:
-        ghc-version: ${{ matrix.plans.ghc-version }}
+        ghc-version: ${{ env.ghc_version }}
 
     - name: cache cabal store
       uses: actions/cache@v3
       with:
-        key: cabal-store-${{ runner.os }}-${{ matrix.plans.plan }}-${{ github.sha }}
+        key: cabal-store-${{ runner.os }}-${{ matrix.plan }}-${{ github.sha }}
         path: ~/.cabal/store
-        restore-keys: cabal-store-${{ runner.os }}-${{ matrix.plans.plan }}-
+        restore-keys: cabal-store-${{ runner.os }}-${{ matrix.plan }}-
 
-    - run: cabal build --ghc-options -Werror --project-file "ci-configs/${{ matrix.plans.plan }}.config"
+    - run: cabal build --ghc-options -Werror --project-file "ci-configs/${{ matrix.plan }}.config"
 
-    - run: mv dist-newstyle/cache/plan.json plan-${{ matrix.plans.plan }}.json
+    - run: mv dist-newstyle/cache/plan.json plan-${{ matrix.plan }}.json
 
     - name: Upload build plan as artifact
       uses: actions/upload-artifact@v3
       with:
         name: plans
-        path: plan-${{ matrix.plans.plan }}.json
+        path: plan-${{ matrix.plan }}.json
 
 
   static:
