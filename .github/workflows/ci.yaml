@@ -44,9 +44,9 @@ jobs:
     - run: mv dist-newstyle/cache/plans.json plan-${{ matrix.plans.plan }}.json
 
     - uses: actions/upload-artifact@v3
-        with:
-          name: plans
-          path: plan-${{ matrix.plans.plan }}.json
+      with:
+        name: plans
+        path: plan-${{ matrix.plans.plan }}.json
 
   bounds:
     runs-on: ubuntu-latest
