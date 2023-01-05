@@ -89,7 +89,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Install
-      run: cabal install --installdir="." --install-method=copy --overwrite-policy=always --ghc-options='-split-sections -optl-static'
+      run: cabal install --installdir="." --install-method=copy --overwrite-policy=always --ghc-options='-split-sections -optl-static' --enable-executable-static
 
     - name: File information
       run: ls -sh cabal-plan-bounds; file cabal-plan-bounds
