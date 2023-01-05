@@ -58,7 +58,7 @@ jobs:
     # Elsewhere, we would download this tool. Here, we build it (again)
     - uses: haskell/actions/setup@v2
       with:
-        ghc-version: ${{ 9.4.4 }}
+        ghc-version: 9.4.4
 
     - name: cache cabal store
       uses: actions/cache@v3
