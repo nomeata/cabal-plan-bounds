@@ -86,7 +86,7 @@ jobs:
     #   shell: bash
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install
       run: cabal install --installdir="." --install-method=copy --overwrite-policy=always --ghc-options='-split-sections -optl-static'
