@@ -11,15 +11,15 @@ jobs:
     name: Enumerate CI configurations
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      configs: ${{ steps.enumerate.outputs.configs }}
 
     steps:
     - uses: actions/checkout@v3
-    - id: set-matrix
+    - id: enumerate
       run: |
         ls -1 ci-configs/| grep -o -P '.*(?=.config)'| jq -R -c '[inputs]' > configs.json
         cat configs.json
-        echo "matrix=$(cat configs.json)"
+        echo configs=$(cat configs.json)" >> $GITHUB_OUTPUT
 
   build:
     needs: enumerate
@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        plan: ${{ fromJSON(needs.enumerate.outputs.matrix) }}
+        plan: ${{ fromJSON(needs.enumerate.outputs.configs) }}
 
     steps:
     - uses: actions/checkout@v3
