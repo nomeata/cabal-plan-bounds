@@ -88,8 +88,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install
-      run: cabal install --installdir="." --install-method=copy --overwrite-policy=always --ghc-options='-split-sections -optl-static' --enable-executable-static
+    - name: Build
+      run: cabal build --ghc-options='-split-sections -optl-static' --enable-executable-static
+
+    - run: mv dist-newstyle/build/*/*/cabal-plan-bounds-*/x/cabal-plan-bounds/build/cabal-plan-bounds/cabal-plan-bounds .
 
     - name: File information
       run: ls -sh cabal-plan-bounds; file cabal-plan-bounds
