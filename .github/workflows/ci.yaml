@@ -7,20 +7,27 @@ on:
   pull_request:
 
 jobs:
+  enumerate:
+    name: Enumerate CI configurations
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.enumerate.outputs.configs }}
+
+    steps:
+    - uses: actions/checkout@v3
+    - id: enumerate
+      run: |
+        ls -1 ci-configs/| grep -o -P '.*(?=.config)'| jq -n -R -c '[inputs]' > configs.json
+        cat configs.json
+        echo "configs=$(cat configs.json)" >> $GITHUB_OUTPUT
+
   build:
+    needs: enumerate
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      # todo: calculate matrix automatically
-      # todo: derive ghc version from plan
       matrix:
-        plan:
-        - ghc-8.10.7
-        - ghc-9.0.2
-        - ghc-9.2.4
-        - ghc-9.2.5
-        - ghc-9.4.4
-        - stackage-nightly
+        plan: ${{ fromJSON(needs.enumerate.outputs.configs) }}
 
     steps:
     - uses: actions/checkout@v3
