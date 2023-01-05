@@ -68,23 +68,6 @@ jobs:
         path: ~/.cabal/store
         restore-keys: cabal-store-alpine-
 
-    # - name: Install ghcup
-    #   run: |
-    #     curl --proto '=https' --tlsv1.2 -sSf https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > /usr/bin/ghcup
-    #     chmod +x /usr/bin/ghcup
-    #     echo "$HOME/.ghcup/bin" $GITHUB_PATH
-    #   shell: bash
-
-    # - name: Install GHC and cabal
-    #   run: |
-    #     ghcup install ghc   --force -i /usr/local     8.10.7
-    #     ghcup install cabal --force -i /usr/local/bin 3.6.2.0
-    #   shell: bash
-
-    # - name: Update cabal cache
-    #   run: cabal update
-    #   shell: bash
-
     - name: Checkout code
       uses: actions/checkout@v3
 
