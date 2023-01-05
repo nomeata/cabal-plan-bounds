@@ -9,39 +9,48 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # todo: calculate matrix automatically
+      # todo: derive ghc version from plan
+      matrix:
+        plans:
+          - plan: ghc-8.10.7
+            ghc-version: 8.10.7
+          - plan: ghc-9.0.2
+            ghc-version: 9.0.2
+          - plan: ghc-9.2.4
+            ghc-version: 9.2.4
+          - plan: ghc-9.2.5
+            ghc-version: 9.2.5
+          - plan: ghc-9.4.4
+            ghc-version: 9.4.4
+          - plan: stackage-nightly
+            ghc-version: 9.4.4
+
     steps:
     - uses: actions/checkout@v3
 
-    # For now, one job with all compilers
-    # TODO: Multiple jobs, and copying the build plans into one final job
-    # TODO: Generate the jobs from the files in ci-configs/ dyamically
     - uses: haskell/actions/setup@v2
       with:
-        ghc-version: '8.10.7'
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.0.2'
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.2.4'
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.2.5'
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.4.4'
+        ghc-version: ${{ matrix.plans.ghc-version }}
 
     - name: cache cabal store
       uses: actions/cache@v3
       with:
-        key: cabal-store-${{ runner.os }}-${{ github.sha }}
+        key: cabal-store-${{ runner.os }}-${{ matrix.plans.plan }}-${{ github.sha }}
         path: ~/.cabal/store
-        restore-keys: cabal-store-${{ runner.os }}-
+        restore-keys: cabal-store-${{ runner.os }}-${{ matrix.plans.plan }}-
 
-    - run: ./build-all.sh
-    - run: git diff
-    - name: Fail if .cabal file was changed
-      run: git diff-files --quiet || exit 1
+    - run: cabal build --ghc-options -Werror --project-file "ci-configs/${{ matrix.plans.plan }}.config"
+
+    - run: mv dist-newstyle/cache/plan.json plan-${{ matrix.plans.plan }}.json
+
+    - name: Upload build plan as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: plans
+        path: plan-${{ matrix.plans.plan }}.json
 
 
   static:
@@ -69,6 +78,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    # cannot use cabal install, https://github.com/haskell/cabal/issues/7297
     - name: Build
       run: cabal build --enable-executable-static
 
@@ -88,15 +98,46 @@ jobs:
         name: static-build
         path: cabal-plan-bounds.linux.gz
 
+  bounds:
+    runs-on: ubuntu-latest
+    name: Calculate cabal bounds
+    needs:
+    - static
+    - build
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Fetch static build
+      uses: actions/download-artifact@v3
+      with:
+        name: static-build
+        path: static-build
+
+    - run: gunzip static-build/cabal-plan-bounds.linux.gz
+    - run: chmod +x static-build/cabal-plan-bounds.linux
+
+    - name: Load plans
+      uses: actions/download-artifact@v3
+      with:
+        name: plans
+        path: plans
+
+    - run: find plans/
+
+    - run: ./static-build/cabal-plan-bounds.linux plans/*.json -c cabal-plan-bounds.cabal
+
+    - run: git diff cabal-plan-bounds.cabal
+    - name: Fail if .cabal file was changed
+      run: git diff-files --quiet cabal-plan-bounds.cabal|| exit 1
+
   release:
     name: Release binary
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     needs:
-    - static
-    - build
+    - bounds
     steps:
-    - name: Load outputs
+    - name: Fetch static build
       uses: actions/download-artifact@v3
       with:
         name: static-build
