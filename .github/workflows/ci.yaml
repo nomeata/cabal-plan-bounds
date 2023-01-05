@@ -42,7 +42,7 @@ jobs:
 
     - run: cabal build --ghc-options -Werror --project-file "ci-configs/${{ matrix.plans.plan }}.config"
 
-    - run: mv dist-newstyle/cache/plans.json plan-${{ matrix.plans.plan }}.json
+    - run: mv dist-newstyle/cache/plan.json plan-${{ matrix.plans.plan }}.json
 
     - uses: actions/upload-artifact@v3
       with:
