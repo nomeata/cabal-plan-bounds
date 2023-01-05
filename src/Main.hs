@@ -37,7 +37,7 @@ main = join . customExecParser (prefs showHelpOnError) $
             (metavar "PLAN" <> help "plan file to read (.json)"))
         <*> many (strOption
             (short 'c' <> long "cabal" <>
-             metavar "CABALFILE" <> help "cabal file to pdate (.cabal)"))
+             metavar "CABALFILE" <> help "cabal file to update (.cabal)"))
 
     is :: String -> ReadM FilePath
     is suffix = maybeReader $ \s -> do
