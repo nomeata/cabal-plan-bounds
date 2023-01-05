@@ -10,6 +10,7 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       # todo: calculate matrix automatically
       # todo: derive ghc version from plan
       matrix:
