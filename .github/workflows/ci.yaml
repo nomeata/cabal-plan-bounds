@@ -44,4 +44,57 @@ jobs:
       run: git diff-files --quiet || exit 1
 
 
+  static:
+    name: Create Release for Linux (static)
+    runs-on: ubuntu-latest
+    container: alpine:3.12
+    steps:
+      - name: Install system dependencies
+        run: |
+          apk add --no-cache curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl git bash sudo binutils-gold
+          apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static
 
+      - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: '9.4.4'
+
+      # - name: Install ghcup
+      #   run: |
+      #     curl --proto '=https' --tlsv1.2 -sSf https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > /usr/bin/ghcup
+      #     chmod +x /usr/bin/ghcup
+      #     echo "$HOME/.ghcup/bin" $GITHUB_PATH
+      #   shell: bash
+
+      # - name: Install GHC and cabal
+      #   run: |
+      #     ghcup install ghc   --force -i /usr/local     8.10.7
+      #     ghcup install cabal --force -i /usr/local/bin 3.6.2.0
+      #   shell: bash
+
+      # - name: Update cabal cache
+      #   run: cabal update
+      #   shell: bash
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install
+        run: cabal install --installdir="." --install-method=copy --overwrite-policy=always --ghc-options='-split-sections -optl-static'
+
+      - name: Strip
+        run: ls -sh cabal-plan-bounds; strip ~/.local/bin/stack2cabal; ls -sh cabal-plan-bounds
+
+      - name: Gzip and rename
+        run: gzip -S .linux.gz cabal-plan-bounds; ls -sh *.gz
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: cabal-plan-bounds.linux.gz
+
+      # - if: always()
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: plan.json
+      #     path: ./dist-newstyle/cache/plan.json
