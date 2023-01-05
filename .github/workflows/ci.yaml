@@ -112,7 +112,7 @@ jobs:
         path: static-build
 
     - run: gunzip static-build/cabal-plan-bounds.linux.gz
-    - run: chmod +x cabal-plan-bounds.linux
+    - run: chmod +x static-build/cabal-plan-bounds.linux
 
     - name: Load plans
       uses: actions/download-artifact@v3
