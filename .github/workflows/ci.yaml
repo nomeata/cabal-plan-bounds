@@ -19,7 +19,7 @@ jobs:
       run: |
         ls -1 ci-configs/| grep -o -P '.*(?=.config)'| jq -R -c '[inputs]' > configs.json
         cat configs.json
-        echo configs=$(cat configs.json)" >> $GITHUB_OUTPUT
+        echo "configs=$(cat configs.json)" >> $GITHUB_OUTPUT
 
   build:
     needs: enumerate
