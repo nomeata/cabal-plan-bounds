@@ -129,6 +129,8 @@ Available options:
 Features and limitations
 ------------------------
 
+* You can pass more than one cabal file at the same time.
+
 * It edits the `.cabal` file in place.
 
 * It leaves the `.cabal` file as is: No reformatting, all comments are preserved.
@@ -153,6 +155,9 @@ Future work (contributions welcome!)
 * Proper error handling, e.g. while parsing.
 * A test suite
 * Printing a nice human-readable summary of dependency changes.
+* A `--extend` mode that only _extends_ the `.cabal` file. This can be used
+  locally if you add a new configuration, and leave it to CI to run all
+  configurations and clean up the `.cabal` file.
 * A `--dry-run` mode that does not touch the `.cabal` file.
 * A `--check` mode that does not touch the `.cabal` file, but fails if it would
   change it (for CI).
