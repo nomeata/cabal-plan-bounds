@@ -10,13 +10,14 @@ import qualified Data.Text as T
 import Options.Applicative
 import Control.Monad
 import Data.List
-import Data.Maybe
 import Cabal.Plan
+import Text.PrettyPrint hiding ((<>))
 
 import qualified Distribution.PackageDescription.Parsec as C
 import qualified Distribution.Package as C
 import qualified Distribution.Types.Version as C
 import qualified Distribution.Types.VersionRange as C
+import Distribution.Pretty (pretty)
 
 import ReplaceDependencies
 
@@ -30,14 +31,15 @@ main = join . customExecParser (prefs showHelpOnError) $
   )
   where
     parser :: Parser (IO ())
-    parser =
-      work
-        <$> many (argument
-            (is ".json")
-            (metavar "PLAN" <> help "plan file to read (.json)"))
-        <*> many (strOption
-            (short 'c' <> long "cabal" <>
-             metavar "CABALFILE" <> help "cabal file to update (.cabal)"))
+    parser = pure work
+      <*> switch (long "dry-run" <> short 'n' <> help "do not actually write .cabal files")
+      <*> switch (long "extend" <> help "only extend version ranges")
+      <*> many (argument
+          (is ".json")
+          (metavar "PLAN" <> help "plan file to read (.json)"))
+      <*> many (strOption
+          (short 'c' <> long "cabal" <>
+           metavar "CABALFILE" <> help "cabal file to update (.cabal)"))
 
     is :: String -> ReadM FilePath
     is suffix = maybeReader $ \s -> do
@@ -62,9 +64,13 @@ depsOf pname plan = M.fromList -- TODO: What if different units of the package h
  , let PkgId (PkgName depName) (Ver depVersion) = uPId depunit
  ]
 
-unionMajorBounds :: [C.Version] -> C.VersionRange
-unionMajorBounds [] = C.anyVersion
-unionMajorBounds vs = foldr1 C.unionVersionRanges (map C.majorBoundVersion vs)
+unionMajorBounds1 :: [C.Version] -> C.VersionRange
+unionMajorBounds1 [] = C.anyVersion
+unionMajorBounds1 vs = foldr1 C.unionVersionRanges (map C.majorBoundVersion vs)
+
+unionMajorBounds :: C.VersionRange -> [C.Version] -> C.VersionRange
+unionMajorBounds vr [] = vr
+unionMajorBounds vr vs = C.unionVersionRanges vr (unionMajorBounds1 vs)
 
 -- assumes sorted input
 pruneVersionRanges :: [C.Version] -> [C.Version]
@@ -75,8 +81,18 @@ pruneVersionRanges (v1:v2:vs)
   | otherwise                                 = v1 : pruneVersionRanges (v2 : vs)
 
 
-work :: [FilePath] -> [FilePath] -> IO ()
-work planfiles cabalfiles = do
+-- Assumes that the “new” range is always the same
+cleanChanges :: [(C.PackageName, C.VersionRange, C.VersionRange)]
+    -> [(C.PackageName, ([C.VersionRange], C.VersionRange))]
+cleanChanges changes =
+    M.toList $
+    M.map (\(old, new) -> (nub old, new)) $ -- No Ord C.VersionRange
+    M.fromListWith (\(olds1, new1) (olds2, _new2) -> (olds1 <> olds2, new1)) $
+    [ (pname, ([old], new)) | (pname, old, new) <- changes, old /= new ]
+
+
+work :: Bool -> Bool -> [FilePath] -> [FilePath] -> IO ()
+work dry_run extend planfiles cabalfiles = do
     plans <- mapM decodePlanJson planfiles
 
     forM_ cabalfiles $ \cabalfile -> do
@@ -85,17 +101,28 @@ work planfiles cabalfiles = do
       -- Figure out package name
       let pname = cabalPackageName contents
 
-      let deps = fmap (unionMajorBounds . pruneVersionRanges . sort) $
+      let deps = fmap (pruneVersionRanges . sort) $
               M.unionsWith (++) $
               map (fmap pure) $
               map (depsOf pname) plans
 
       let new_deps pn vr
             | pn == pname = C.anyVersion -- self-dependency
-            | otherwise   = fromMaybe vr $ M.lookup pn deps
+            | Just vs' <- M.lookup pn deps
+            = if extend
+              then unionMajorBounds vr [ v | v <- vs' , not (v `C.withinRange` vr) ]
+              else unionMajorBounds1 vs'
+            | otherwise  = vr -- fallback
 
-      let contents' = replaceDependencies new_deps contents
+      let (contents', fieldChanges) = replaceDependencies new_deps contents
 
-      unless (contents == contents') $
-          -- TODO: Use atomic-write
-          BS.writeFile cabalfile contents'
+      forM_ (cleanChanges fieldChanges) $ \(pn, (olds, new)) ->
+        putStrLn $ render $
+            hang (pretty pn) 4 $ vcat $
+                [ char '-' <+> pretty old | old <- olds ] <>
+                [ char '+' <+> pretty new ]
+
+      unless dry_run $
+          unless (contents == contents') $
+              -- TODO: Use atomic-write
+              BS.writeFile cabalfile contents'

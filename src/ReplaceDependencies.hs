@@ -19,27 +19,48 @@ import qualified Distribution.Types.Dependency as C
 import qualified Distribution.Types.PackageName as C
 import qualified Distribution.Types.VersionRange as C
 
--- | This is the simple and clean entry point to this ugly and hacky module.
+-- | This is the simple and reasonably clean entry point to this ugly and hacky module.
 -- I hope by the time this tool becomes practically relevant I can replace this module
 -- with something cleaner (e.g. based on the Cabal exact-print work)
 -- Contributions are highly welcome!
 --
+-- It takes an unparsed cabal file, and adjusts all build-dependencies according
+-- to a function taking the dependency's package name and old version range, and returns
+-- the new range.
+--
+-- It returns the changed cabal file, and a raw list of changes
+-- (not-deduplicated, includes trivial changes)
+--
 -- TODO: Error handling
 replaceDependencies ::
-    (C.PackageName -> C.VersionRange -> C.VersionRange) -> BS.ByteString -> BS.ByteString
-replaceDependencies f contents = changed
+    (C.PackageName -> C.VersionRange -> C.VersionRange) ->
+    BS.ByteString ->
+    (BS.ByteString, [(C.PackageName, C.VersionRange, C.VersionRange)])
+replaceDependencies f contents =
+    ( replaceFieldValues fieldChanges contents
+    , concat depChangess)
   where
     fields = case C.readFields contents of
         Left err -> error (show err)
         Right fields' -> fields'
 
-    buildDeps = findBuildDeps fields
-    changed = replaceFieldValues
-        [ (fv, BS.pack $ C.prettyShow @DependencyField $ C.pack deps')
-        | fv <- buildDeps
+    fieldChanges :: [(FieldValue C.Position, BS.ByteString)]
+    depChangess :: [[(C.PackageName, C.VersionRange, C.VersionRange)]]
+    (fieldChanges, depChangess) = unzip
+        [ ( (fv, newFieldValue), changes)
+        | fv <- findBuildDeps fields
         , let deps = parseFieldValue fv
-        , let deps' = map (\(C.Dependency name range libSet) -> C.Dependency name (f name range) libSet) deps
-        ] contents
+        , let old_and_new =
+                [ (name, libSet, range, range')
+                | (C.Dependency name range libSet) <- deps
+                , let range' = f name range
+                ]
+        , let changes =
+                    [ (name, range, range') | (name, _, range, range') <- old_and_new ]
+        , let newFieldValue =
+                BS.pack $ C.prettyShow @DependencyField $ C.pack $
+                    [ C.Dependency name range' libSet | (name, libSet, _, range') <- old_and_new ]
+        ]
 
 type FieldValue a = [C.FieldLine a]
 type DependencyField = C.List C.CommaVCat (C.Identity C.Dependency) C.Dependency
