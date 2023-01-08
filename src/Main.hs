@@ -32,7 +32,8 @@ main = join . customExecParser (prefs showHelpOnError) $
     parser :: Parser (IO ())
     parser =
       work
-        <$> many (argument
+        <$> switch (long "dry-run" <> short 'n' <> help "do not actually write .cabal files")
+        <*> many (argument
             (is ".json")
             (metavar "PLAN" <> help "plan file to read (.json)"))
         <*> many (strOption
@@ -75,8 +76,8 @@ pruneVersionRanges (v1:v2:vs)
   | otherwise                                 = v1 : pruneVersionRanges (v2 : vs)
 
 
-work :: [FilePath] -> [FilePath] -> IO ()
-work planfiles cabalfiles = do
+work :: Bool -> [FilePath] -> [FilePath] -> IO ()
+work dry_run planfiles cabalfiles = do
     plans <- mapM decodePlanJson planfiles
 
     forM_ cabalfiles $ \cabalfile -> do
@@ -96,6 +97,7 @@ work planfiles cabalfiles = do
 
       let contents' = replaceDependencies new_deps contents
 
-      unless (contents == contents') $
-          -- TODO: Use atomic-write
-          BS.writeFile cabalfile contents'
+      unless dry_run $
+          unless (contents == contents') $
+              -- TODO: Use atomic-write
+              BS.writeFile cabalfile contents'

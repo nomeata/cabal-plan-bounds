@@ -115,13 +115,14 @@ Usage
 -----
 
 ```
-cabal-plan-bounds -- --help
+$ cabal-plan-bounds --help
 Derives dependency bounds from build plans
 
-Usage: cabal-plan-bounds [PLAN] [-c|--cabal CABALFILE]
+Usage: cabal-plan-bounds [-n|--dry-run] [PLAN] [-c|--cabal CABALFILE]
 
 Available options:
   -h,--help                Show this help text
+  -n,--dry-run             do not actually write .cabal files
   PLAN                     plan file to read (.json)
   -c,--cabal CABALFILE     cabal file to update (.cabal)
 ```
@@ -158,7 +159,6 @@ Future work (contributions welcome!)
 * A `--extend` mode that only _extends_ the `.cabal` file. This can be used
   locally if you add a new configuration, and leave it to CI to run all
   configurations and clean up the `.cabal` file.
-* A `--dry-run` mode that does not touch the `.cabal` file.
 * A `--check` mode that does not touch the `.cabal` file, but fails if it would
   change it (for CI).
 * Update the `tested-with` field according to the compiler versions used.
