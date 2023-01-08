@@ -1,6 +1,12 @@
 # Revision history for cabal-plan-bounds
 
-## 0.2.1 -- 2023-01-05
+## 0.1.3 -- 2023-01-08
+
+* Prints a summary of changes
+* New flag `--dry-run`
+* New flag `--extend`
+
+## 0.1.2 -- 2023-01-05
 
 * Self-dependencies (e.g. from exe to lib) should not be versioned
 * Provide a static build
