@@ -12,11 +12,13 @@ import Control.Monad
 import Data.List
 import Data.Maybe
 import Cabal.Plan
+import Text.PrettyPrint hiding ((<>))
 
 import qualified Distribution.PackageDescription.Parsec as C
 import qualified Distribution.Package as C
 import qualified Distribution.Types.Version as C
 import qualified Distribution.Types.VersionRange as C
+import Distribution.Pretty (pretty)
 
 import ReplaceDependencies
 
@@ -76,6 +78,16 @@ pruneVersionRanges (v1:v2:vs)
   | otherwise                                 = v1 : pruneVersionRanges (v2 : vs)
 
 
+-- Assumes that the “new” range is always the same
+cleanChanges :: [(C.PackageName, C.VersionRange, C.VersionRange)]
+    -> [(C.PackageName, ([C.VersionRange], C.VersionRange))]
+cleanChanges changes =
+    M.toList $
+    M.map (\(old, new) -> (nub old, new)) $ -- No Ord C.VersionRange
+    M.fromListWith (\(olds1, new1) (olds2, _new2) -> (olds1 <> olds2, new1)) $
+    [ (pname, ([old], new)) | (pname, old, new) <- changes, old /= new ]
+
+
 work :: Bool -> [FilePath] -> [FilePath] -> IO ()
 work dry_run planfiles cabalfiles = do
     plans <- mapM decodePlanJson planfiles
@@ -95,7 +107,13 @@ work dry_run planfiles cabalfiles = do
             | pn == pname = C.anyVersion -- self-dependency
             | otherwise   = fromMaybe vr $ M.lookup pn deps
 
-      let contents' = replaceDependencies new_deps contents
+      let (contents', fieldChanges) = replaceDependencies new_deps contents
+
+      forM_ (cleanChanges fieldChanges) $ \(pn, (olds, new)) ->
+        putStrLn $ render $
+            hang (pretty pn) 4 $ vcat $
+                [ char '-' <+> pretty old | old <- olds ] <>
+                [ char '+' <+> pretty new ]
 
       unless dry_run $
           unless (contents == contents') $

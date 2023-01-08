@@ -155,7 +155,6 @@ Future work (contributions welcome!)
 
 * Proper error handling, e.g. while parsing.
 * A test suite
-* Printing a nice human-readable summary of dependency changes.
 * A `--extend` mode that only _extends_ the `.cabal` file. This can be used
   locally if you add a new configuration, and leave it to CI to run all
   configurations and clean up the `.cabal` file.
