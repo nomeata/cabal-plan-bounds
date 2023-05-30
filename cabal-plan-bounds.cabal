@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               cabal-plan-bounds
-version:            0.1.3
+version:            0.1.3.1
 synopsis:           Derives cabal bounds from build plans
 description:
   Manually curated dependency version ranges tend to become a lie: They likely
