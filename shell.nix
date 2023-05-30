@@ -1,4 +1,4 @@
-with import (builtins.fetchTarball https://github.com/NixOS/nixpkgs/archive/718eba0289831c676963f253b19aaf8129fa77d3.tar.gz) { };
+with import (builtins.fetchTarball https://github.com/NixOS/nixpkgs/archive/8a307766007b3d904793657ae408b43927d13fff.tar.gz) { };
 stdenv.mkDerivation rec {
   name = "env";
   buildInputs = [
@@ -7,6 +7,7 @@ stdenv.mkDerivation rec {
     haskell.compiler.ghc924
     haskell.compiler.ghc925
     haskell.compiler.ghc944
+    haskell.compiler.ghc961
     ghcid
   ];
 }
