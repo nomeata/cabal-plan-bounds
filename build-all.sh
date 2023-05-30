@@ -11,7 +11,7 @@ echo "Found ${#names[@]} configurations"
 
 for name in "${names[@]}"; do
   echo "Building $name"
-  cabal build --ghc-options -Werror --project-file "ci-configs/$name.config" --builddir "dist-$name"
+  cabal build --allow-newer --ghc-options -Werror --project-file "ci-configs/$name.config" --builddir "dist-$name"
 done
 
 echo "Updating .cabal file"

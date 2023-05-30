@@ -1,5 +1,9 @@
 # Revision history for cabal-plan-bounds
 
+## 0.1.3.1 -- 2023-05-30
+
+* GHC-9.6 support
+
 ## 0.1.3 -- 2023-01-08
 
 * Prints a summary of changes
