@@ -53,7 +53,7 @@ jobs:
     - name: Special handling for upper-bounds
       if: matrix.plan == 'upper-bounds'
       run: |
-        curl -L https://github.com/nomeata/cabal-plan-bounds/releases/test-cabal-force-upper-bound/download/cabal-force-upper-bound.linux.gz | gunzip  > /usr/local/bin/cabal-force-upper-bound
+        curl -L https://github.com/nomeata/cabal-plan-bounds/releases/download/test-cabal-force-upper-bound/cabal-force-upper-bound.linux.gz | gunzip  > /usr/local/bin/cabal-force-upper-bound
         chmod +x /usr/local/bin/cabal-force-upper-bound
         echo -n "extra_flags=" >> $GITHUB_ENV
         cabal-force-upper-bound --allow-newer *.cabal >> $GITHUB_ENV
