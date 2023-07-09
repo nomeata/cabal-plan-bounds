@@ -161,6 +161,14 @@ jobs:
     - run: ./static-build/cabal-plan-bounds.linux plans/*.json -c cabal-plan-bounds.cabal
 
     - run: git diff cabal-plan-bounds.cabal
+
+    - name: Push updated .cabal file if labeled update-bounds
+      if: contains(github.event.pull_request.labels.*.name, 'update-bounds')
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Update cabal bounds based on build plans
+        file_pattern: '*.cabal'
+
     - name: Fail if .cabal file was changed
       run: git diff-files --quiet cabal-plan-bounds.cabal|| exit 1
 
