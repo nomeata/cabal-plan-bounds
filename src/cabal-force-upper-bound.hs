@@ -92,7 +92,7 @@ fromUpperBound (C.UpperBound (C.versionNumbers -> [a,0]) C.ExclusiveBound) | a >
     Just $ C.mkVersion [pred a, 0]
 fromUpperBound (C.UpperBound (C.versionNumbers -> [a,b]) C.ExclusiveBound) =
     Just $ C.mkVersion [a, pred b]
-fromUpperBound i = Nothing
+fromUpperBound _ = Nothing
 
 unionMajorBounds1 :: [C.Version] -> C.VersionRange
 unionMajorBounds1 [] = C.anyVersion
