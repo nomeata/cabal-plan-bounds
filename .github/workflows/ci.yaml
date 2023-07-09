@@ -119,7 +119,7 @@ jobs:
         #chmod +x /usr/local/bin/cabal-force-upper-bound
         #
         echo -n "extra_flags=" >> $GITHUB_ENV
-        ./static-build/cabal-force-upper-bound --allow-newer *.cabal >> $GITHUB_ENV
+        ./static-build/cabal-force-upper-bound.linux --allow-newer *.cabal >> $GITHUB_ENV
 
     - run: cabal build --ghc-options -Werror --project-file "ci-configs/${{ matrix.plan }}.config" ${{ env.extra_flags }}
 
