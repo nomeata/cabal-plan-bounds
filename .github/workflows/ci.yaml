@@ -90,20 +90,27 @@ jobs:
       run: cabal build --enable-executable-static
 
     - run: mv dist-newstyle/build/*/*/cabal-plan-bounds-*/x/cabal-plan-bounds/build/cabal-plan-bounds/cabal-plan-bounds .
+    - run: mv dist-newstyle/build/*/*/cabal-plan-bounds-*/x/cabal-force-upper-bound/build/cabal-force-upper-bound/cabal-force-upper-bound .
 
     - name: Strip
-      run: strip cabal-plan-bounds
+      run: |
+        strip cabal-plan-bounds cabal-force-upper-bound
 
     - name: File information
-      run: ls -sh cabal-plan-bounds; file cabal-plan-bounds
+      run: ls -sh cabal-plan-bounds cabal-force-upper-bound; file cabal-plan-bound cabal-force-upper-bounds
 
     - name: Gzip and rename
-      run: gzip -S .linux.gz cabal-plan-bounds; ls -sh *.gz
+      run: |
+        gzip -S .linux.gz cabal-plan-bounds
+        gzip -S .linux.gz cabal-force-upper-bound
+        ls -sh *.gz
 
     - uses: actions/upload-artifact@v3
       with:
         name: static-build
-        path: cabal-plan-bounds.linux.gz
+        path: |
+          cabal-plan-bounds.linux.gz
+          cabal-force-upper-bound.linux.gz
 
   bounds:
     runs-on: ubuntu-latest
@@ -153,4 +160,4 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: static-build/cabal-plan-bounds.linux.gz
+        files: static-build/*
