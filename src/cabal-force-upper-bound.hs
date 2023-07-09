@@ -129,6 +129,6 @@ work allow_newer cabalfile = do
     let Deps upper_bounds = collectDeps contents
     putStrLn $ render $ hsep
         -- We are not using C.PackageVersionConstraint's pretty syntax to avoid the space
-        [ ("--constraint=" <> pretty pkg <> pretty (C.majorBoundVersion version)) <+>
+        [ ("\"--constraint=" <> pretty pkg <> pretty (C.majorBoundVersion version) <> "\"") <+>
           (if allow_newer then "--allow-newer=" <> pretty pkg else mempty)
         | (pkg, version) <- M.toList upper_bounds ]

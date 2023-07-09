@@ -50,13 +50,22 @@ jobs:
         path: ~/.cabal/store
         restore-keys: cabal-store-${{ runner.os }}-${{ matrix.plan }}-
 
+    - name: Fetch static build
+      uses: actions/download-artifact@v3
+      with:
+        name: static-build
+        path: static-build
+    - run: gunzip static-build/cabal-force-upper-bound.linux.gz
+    - run: chmod +x static-build/cabal-force-upper-bound.linux
+
     - name: Special handling for upper-bounds
       if: matrix.plan == 'upper-bounds'
       run: |
-        curl -L https://github.com/nomeata/cabal-plan-bounds/releases/download/test-cabal-force-upper-bound/cabal-force-upper-bound.linux.gz | gunzip  > /usr/local/bin/cabal-force-upper-bound
-        chmod +x /usr/local/bin/cabal-force-upper-bound
+        #curl -L https://github.com/nomeata/cabal-plan-bounds/releases/download/test-cabal-force-upper-bound/cabal-force-upper-bound.linux.gz | gunzip  > /usr/local/bin/cabal-force-upper-bound
+        #chmod +x /usr/local/bin/cabal-force-upper-bound
+        #
         echo -n "extra_flags=" >> $GITHUB_ENV
-        cabal-force-upper-bound --allow-newer *.cabal >> $GITHUB_ENV
+        ./static-build/cabal-force-upper-bound --allow-newer *.cabal >> $GITHUB_ENV
 
     - run: cabal build --ghc-options -Werror --project-file "ci-configs/${{ matrix.plan }}.config" ${{ env.extra_flags }}
 
