@@ -32,7 +32,7 @@ executable cabal-plan-bounds
     main-is:          cabal-plan-bounds.hs
     other-modules:    ReplaceDependencies
     build-depends:    base ^>=4.14.3.0 || ^>=4.15.1.0 || ^>=4.16.3.0 || ^>=4.17.0.0 || ^>=4.18.0.0,
-                      bytestring ^>=0.10.12.0 || ^>=0.11.3.1,
+                      bytestring (^>=0.10.12.0 || ^>=0.11.3.1) || ^>=0.12.0.0,
                       containers ^>=0.6.4.1,
                       text ^>=1.2.4.1 || ^>=2.0.1,
                       Cabal-syntax ^>=3.8.1.0 || ^>=3.10.1.0,
@@ -47,7 +47,7 @@ executable cabal-force-upper-bound
     main-is:          cabal-force-upper-bound.hs
     hs-source-dirs:   src/
     build-depends:    base ^>=4.14.3.0 || ^>=4.15.1.0 || ^>=4.16.3.0 || ^>=4.17.0.0 || ^>=4.18.0.0,
-                      bytestring ^>=0.10.12.0 || ^>=0.11.3.1,
+                      bytestring (^>=0.10.12.0 || ^>=0.11.3.1) || ^>=0.12.0.0,
                       containers ^>=0.6.4.1,
                       text ^>=1.2.4.1 || ^>=2.0.1,
                       Cabal-syntax ^>=3.8.1.0 || ^>=3.10.1.0,
