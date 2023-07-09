@@ -90,11 +90,9 @@ fromUpperBound :: C.UpperBound -> Maybe C.Version
 fromUpperBound C.NoUpperBound = Nothing
 fromUpperBound (C.UpperBound (C.versionNumbers -> [a,0]) C.ExclusiveBound) | a > 0 =
     Just $ C.mkVersion [pred a, 0]
-fromUpperBound (C.UpperBound (C.versionNumbers -> [a,b]) C.ExclusiveBound) | a > 0 =
+fromUpperBound (C.UpperBound (C.versionNumbers -> [a,b]) C.ExclusiveBound) =
     Just $ C.mkVersion [a, pred b]
-fromUpperBound _ = Nothing
-
-
+fromUpperBound i = Nothing
 
 unionMajorBounds1 :: [C.Version] -> C.VersionRange
 unionMajorBounds1 [] = C.anyVersion
