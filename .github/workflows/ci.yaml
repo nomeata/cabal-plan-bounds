@@ -8,58 +8,6 @@ on:
   pull_request:
 
 jobs:
-  static:
-    name: build static binary
-    runs-on: ubuntu-latest
-    container: alpine:3.12
-    steps:
-    - name: Install system dependencies
-      run: |
-        apk add --no-cache curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl git bash sudo binutils-gold
-        apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static
-        apk add --no-cache file
-
-    - uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.4.4'
-
-    - name: cache cabal store
-      uses: actions/cache@v3
-      with:
-        key: cabal-store-alpine-${{ github.sha }}
-        path: ~/.cabal/store
-        restore-keys: cabal-store-alpine-
-
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    # cannot use cabal install, https://github.com/haskell/cabal/issues/7297
-    - name: Build
-      run: cabal build --enable-executable-static
-
-    - run: mv dist-newstyle/build/*/*/cabal-plan-bounds-*/x/cabal-plan-bounds/build/cabal-plan-bounds/cabal-plan-bounds .
-    - run: mv dist-newstyle/build/*/*/cabal-plan-bounds-*/x/cabal-force-upper-bound/build/cabal-force-upper-bound/cabal-force-upper-bound .
-
-    - name: Strip
-      run: |
-        strip cabal-plan-bounds cabal-force-upper-bound
-
-    - name: File information
-      run: ls -sh cabal-plan-bounds cabal-force-upper-bound; file cabal-plan-bound cabal-force-upper-bounds
-
-    - name: Gzip and rename
-      run: |
-        gzip -S .linux.gz cabal-plan-bounds
-        gzip -S .linux.gz cabal-force-upper-bound
-        ls -sh *.gz
-
-    - uses: actions/upload-artifact@v3
-      with:
-        name: static-build
-        path: |
-          cabal-plan-bounds.linux.gz
-          cabal-force-upper-bound.linux.gz
-
   enumerate:
     name: Enumerate CI configurations
     runs-on: ubuntu-latest
@@ -74,9 +22,7 @@ jobs:
         echo "configs=$(cat configs.json)" >> $GITHUB_OUTPUT
 
   build:
-    needs:
-    - enumerate
-    - static
+    needs: enumerate
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -104,22 +50,17 @@ jobs:
         path: ~/.cabal/store
         restore-keys: cabal-store-${{ runner.os }}-${{ matrix.plan }}-
 
-    - name: Fetch static build
-      uses: actions/download-artifact@v3
-      with:
-        name: static-build
-        path: static-build
-    - run: gunzip static-build/cabal-force-upper-bound.linux.gz
-    - run: chmod +x static-build/cabal-force-upper-bound.linux
+    - name: Fetch cabal-force-upper-bounds
+      if: matrix.plan == 'upper-bounds'
+      run: |
+        curl -L https://github.com/nomeata/cabal-force-upper-bound/releases/latest/download/cabal-force-upper-bound.linux.gz | gunzip  > /usr/local/bin/cabal-force-upper-bound
+        chmod +x /usr/local/bin/cabal-force-upper-bound
 
     - name: Special handling for upper-bounds
       if: matrix.plan == 'upper-bounds'
       run: |
-        #curl -L https://github.com/nomeata/cabal-plan-bounds/releases/download/test-cabal-force-upper-bound/cabal-force-upper-bound.linux.gz | gunzip  > /usr/local/bin/cabal-force-upper-bound
-        #chmod +x /usr/local/bin/cabal-force-upper-bound
-        #
         echo -n "extra_flags=" >> $GITHUB_ENV
-        ./static-build/cabal-force-upper-bound.linux --allow-newer *.cabal >> $GITHUB_ENV
+        cabal-force-upper-bound --allow-newer *.cabal >> $GITHUB_ENV
 
     - run: cabal build --ghc-options -Werror --project-file "ci-configs/${{ matrix.plan }}.config" ${{ env.extra_flags }}
 
