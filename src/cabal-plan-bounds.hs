@@ -15,8 +15,10 @@ import Text.PrettyPrint hiding ((<>))
 
 import qualified Distribution.PackageDescription.Parsec as C
 import qualified Distribution.Package as C
+import qualified Distribution.Parsec as C
 import qualified Distribution.Types.Version as C
 import qualified Distribution.Types.VersionRange as C
+import qualified Distribution.Types.PackageVersionConstraint as C
 import Distribution.Pretty (pretty)
 
 import ReplaceDependencies
@@ -34,6 +36,7 @@ main = join . customExecParser (prefs showHelpOnError) $
     parser = pure work
       <*> switch (long "dry-run" <> short 'n' <> help "do not actually write .cabal files")
       <*> switch (long "extend" <> help "only extend version ranges")
+      <*> many (option packageVersionP (long "also" <> help "additional versions (pkg-1.2.3 or \"pkg ==1.2.3\")"))
       <*> many (argument
           (is ".json")
           (metavar "PLAN" <> help "plan file to read (.json)"))
@@ -45,6 +48,14 @@ main = join . customExecParser (prefs showHelpOnError) $
     is suffix = maybeReader $ \s -> do
         guard (suffix `isSuffixOf` s)
         pure s
+
+packageVersionP :: ReadM (C.PackageName, C.Version)
+packageVersionP = eitherReader $ \s -> do
+    C.PackageVersionConstraint pkg vr <- C.eitherParsec s
+    case C.projectVersionRange vr of
+        C.ThisVersionF v -> pure (pkg, v)
+        C.MajorBoundVersionF v -> pure (pkg, v)
+        _ -> Left "Please pass exactly one version to the --also flag."
 
 cabalPackageName :: BS.ByteString -> C.PackageName
 cabalPackageName contents =
@@ -94,9 +105,8 @@ cleanChanges changes =
     M.fromListWith (\(olds1, new1) (olds2, _new2) -> (olds1 <> olds2, new1)) $
     [ (pname, ([old], new)) | (pname, old, new) <- changes, old /= new ]
 
-
-work :: Bool -> Bool -> [FilePath] -> [FilePath] -> IO ()
-work dry_run extend planfiles cabalfiles = do
+work :: Bool -> Bool -> [(C.PackageName, C.Version)] -> [FilePath] -> [FilePath] -> IO ()
+work dry_run extend explicits planfiles cabalfiles = do
     plans <- mapM decodePlanJson planfiles
 
     forM_ cabalfiles $ \cabalfile -> do
@@ -106,9 +116,8 @@ work dry_run extend planfiles cabalfiles = do
       let pname = cabalPackageName contents
 
       let deps = fmap (pruneVersionRanges . sort) $
-              M.unionsWith (++) $
-              map (fmap pure) $
-              map (depsOf pname) plans
+              M.unionsWith (++) $ map (fmap pure) $
+              M.fromList explicits : map (depsOf pname) plans
 
       let new_deps pn vr
             | pn == pname = C.anyVersion -- self-dependency
