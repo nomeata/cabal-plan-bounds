@@ -68,9 +68,13 @@ unionMajorBounds1 :: [C.Version] -> C.VersionRange
 unionMajorBounds1 [] = C.anyVersion
 unionMajorBounds1 vs = foldr1 C.unionVersionRanges (map C.majorBoundVersion vs)
 
-unionMajorBounds :: C.VersionRange -> [C.Version] -> C.VersionRange
-unionMajorBounds vr [] = vr
-unionMajorBounds vr vs = C.unionVersionRanges vr (unionMajorBounds1 vs)
+extendVersionRanges :: C.VersionRange -> [C.Version] -> C.VersionRange
+extendVersionRanges vr1 [] = vr1
+extendVersionRanges vr1 vr2
+  | C.UnionVersionRangesF vr1a vr1b <- C.projectVersionRange vr1
+  = C.unionVersionRanges vr1a (extendVersionRanges vr1b vr2)
+  | otherwise
+  = C.unionVersionRanges vr1 (unionMajorBounds1 vr2)
 
 -- assumes sorted input
 pruneVersionRanges :: [C.Version] -> [C.Version]
@@ -110,7 +114,7 @@ work dry_run extend planfiles cabalfiles = do
             | pn == pname = C.anyVersion -- self-dependency
             | Just vs' <- M.lookup pn deps
             = if extend
-              then unionMajorBounds vr [ v | v <- vs' , not (v `C.withinRange` vr) ]
+              then extendVersionRanges vr [ v | v <- vs' , not (v `C.withinRange` vr) ]
               else unionMajorBounds1 vs'
             | otherwise  = vr -- fallback
 
