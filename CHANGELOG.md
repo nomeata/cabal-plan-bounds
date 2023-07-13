@@ -1,5 +1,10 @@
 # Revision history for cabal-plan-bounds
 
+## 0.1.4 -- 2023-07-13
+
+* Right-associate `||` when using `--extend`
+* Add `--also` flag to add versions without a full build plan
+
 ## 0.1.3.1 -- 2023-05-30
 
 * GHC-9.6 support
