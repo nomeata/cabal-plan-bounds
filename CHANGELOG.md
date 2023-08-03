@@ -1,5 +1,9 @@
 # Revision history for cabal-plan-bounds
 
+## 0.1.5 -- 2023-08-03
+
+* Strip patch level from version numbers
+
 ## 0.1.4 -- 2023-07-13
 
 * Right-associate `||` when using `--extend`
