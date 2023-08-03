@@ -95,6 +95,8 @@ pruneVersionRanges (v1:v2:vs)
   | v2 `C.withinRange` C.majorBoundVersion v1 = pruneVersionRanges (v1 : vs)
   | otherwise                                 = v1 : pruneVersionRanges (v2 : vs)
 
+stripPatchLevel :: C.Version -> C.Version
+stripPatchLevel = C.alterVersion (take 3)
 
 -- Assumes that the “new” range is always the same
 cleanChanges :: [(C.PackageName, C.VersionRange, C.VersionRange)]
@@ -115,7 +117,7 @@ work dry_run extend explicits planfiles cabalfiles = do
       -- Figure out package name
       let pname = cabalPackageName contents
 
-      let deps = fmap (pruneVersionRanges . sort) $
+      let deps = fmap (pruneVersionRanges . sort . map stripPatchLevel) $
               M.unionsWith (++) $ map (fmap pure) $
               M.fromList explicits : map (depsOf pname) plans
 
