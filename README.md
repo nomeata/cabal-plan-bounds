@@ -13,7 +13,8 @@ include versions of your dependencies that are neither longer tested by your CI
 system, or implied by compatibility with the tested versions (by way of the [PVP]).
 
 Typically, these are versions near the lower edge of the bounds, but can also
-be on the upper end (e.g. when they are packaged with GHC and Cabal prefers installed versions, or when they are not actually installable yet).
+be on the upper end (e.g. when they are packaged with GHC and Cabal prefers
+installed versions, or when they are not actually installable yet).
 
 There are ways to mitigate this problem, such as being very careful, and maybe
 using Cabal's new [`--prefer-oldest`] flag. But these are not reliable.
@@ -64,13 +65,13 @@ index 1db21ca..a99e7bc 100644
 -                      optparse-applicative, containers,
 -                      text
 -    build-depends:    bytestring,
-+    build-depends:    base ^>=4.14.3.0 || ^>=4.15.1.0 || ^>=4.16.4.0 || ^>=4.17.0.0,
-+                      Cabal-syntax ^>=3.8.1.0,
-+                      cabal-plan ^>=0.7.2.3,
-+                      optparse-applicative ^>=0.17.0.0,
-+                      containers ^>=0.6.4.1,
-+                      text ^>=1.2.4.1 || ^>=2.0.1
-+    build-depends:    bytestring ^>=0.10.12.0 || ^>=0.11.3.1
++    build-depends:    base ^>=4.14.3 || ^>=4.15.1 || ^>=4.16.4 || ^>=4.17.0,
++                      Cabal-syntax ^>=3.8.1,
++                      cabal-plan ^>=0.7.2,
++                      optparse-applicative ^>=0.17.0,
++                      containers ^>=0.6.4,
++                      text ^>=1.2.4 || ^>=2.0.1
++    build-depends:    bytestring ^>=0.10.12 || ^>=0.11.3
      hs-source-dirs:   src/
      default-language: Haskell2010
 ```
@@ -93,7 +94,8 @@ with-compiler: ghc-9.4.4
 ```
 
 Here we pin the compiler version and the precise view of Hackage repo to get
-reproducible results. You can imagine a separate tool that regularly updates these time stamps.
+reproducible results. You can imagine a separate tool that regularly updates
+these time stamps.
 
 Similarly, we can pull in stackage configurations, simply by importing the
 corresponding `cabal.config`, which also pins down the compiler
@@ -138,11 +140,14 @@ Features and limitations
 
 * It edits the `.cabal` file in place.
 
-* It leaves the `.cabal` file as is: No reformatting, all comments are preserved.
+* It leaves the `.cabal` file as is: No reformatting, all comments are
+  preserved.
 
-* Only the `build-depends` fields are touched. They are reformatted (one dependency per line).
+* Only the `build-depends` fields are touched. They are reformatted (one
+  dependency per line).
 
-  It does not add, remove or reorder the packages mentioned in the dependencies.
+  It does not add, remove or reorder the packages mentioned in the
+  dependencies.
 
 * It will apply the same bounds to _all_ mentions of a dependency in the
   `.cabal` file (e.g. in different components, or in conditionals).
@@ -153,6 +158,9 @@ Features and limitations
 
   This means some behaviour cannot be achieved. Maybe this needs to be revised
   (especially with regard to conditionals).
+
+* It strips the patch level from the bound, and will write `^>= 1.2.3` instead
+  of `^>= 1.2.3.4`, assuming the package follows the PVP.
 
 Future work (contributions welcome!)
 ------------------------------------
