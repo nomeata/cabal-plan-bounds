@@ -19,7 +19,7 @@ jobs:
         apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static
         apk add --no-cache file
 
-    - uses: haskell/actions/setup@v2
+    - uses: haskell-actions/setup@v2
       with:
         ghc-version: '9.4.4'
 
@@ -88,7 +88,7 @@ jobs:
         echo "Detected compiler version $ver in ci-configs/${{ matrix.plan }}.config"
         echo "ghc_version=$ver" >> $GITHUB_ENV
 
-    - uses: haskell/actions/setup@v2
+    - uses: haskell-actions/setup@v2
       with:
         ghc-version: ${{ env.ghc_version || 'latest' }}
 
