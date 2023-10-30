@@ -105,7 +105,7 @@ replaceFieldValues valueSubsts input =
             | otherwise = error $ "Field value out of order"
           where
             isHere (fl, _) = C.positionRow (C.fieldLineAnn fl) == i
-            r = C.positionRow (C.fieldLineAnn (fst (head ss)))
+            r = C.positionRow (C.fieldLineAnn (\((x,_):_) -> x))
 
 
         unchanged ls =  [ ([], l) | l <- ls ]
