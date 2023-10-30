@@ -1,1 +1,7 @@
 packages: .
+
+allow-newer:
+  cabal-plan-0.7.3.0:base,
+  cabal-plan-0.7.3.0:bytestring,
+  cabal-plan-0.7.3.0:text
+
