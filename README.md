@@ -133,6 +133,17 @@ Available options:
 
 ```
 
+A word of warning
+-----------------
+
+Too strict version bounds can severely limit your compatibility with the rest
+of the Haskell ecosystem. 
+If your package is published to be used by other people in different setups,
+especially as a library, you should ideally have version bounds compatible
+with stackage LTS, stackage nightly and the current newest versions on hackage.
+If your package does not actually work in all those setups, that’s fine, but
+try to avoid unnecessarily restricting those usecases.
+
 Features and limitations
 ------------------------
 
