@@ -1,5 +1,9 @@
 # Revision history for cabal-plan-bounds
 
+## 0.1.6 -- 2024-03-25
+
+* Fix issues with `--also` flag
+
 ## 0.1.5.1 -- 2023-10-31
 
 * GHC-9.8 support
