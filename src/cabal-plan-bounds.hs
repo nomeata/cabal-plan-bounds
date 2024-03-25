@@ -117,9 +117,9 @@ work dry_run extend explicits planfiles cabalfiles = do
       -- Figure out package name
       let pname = cabalPackageName contents
 
-      let deps = fmap (pruneVersionRanges . sort . map stripPatchLevel) $
-              M.unionsWith (++) $ map (fmap pure) $
-              M.fromList explicits : map (depsOf pname) plans
+      let deps = fmap (pruneVersionRanges . sort . map stripPatchLevel) $ M.fromListWith (++) $
+            [ (p,[v]) | (p,v) <- explicits ] ++
+            [ (p,[v]) | plan <- plans, (p,v) <- M.toList (depsOf pname plan) ]
 
       let new_deps pn vr
             | pn == pname = C.anyVersion -- self-dependency
