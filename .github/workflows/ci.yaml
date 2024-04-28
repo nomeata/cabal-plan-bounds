@@ -91,6 +91,7 @@ jobs:
     - uses: haskell-actions/setup@v2
       with:
         ghc-version: ${{ env.ghc_version || 'latest' }}
+        ghcup-release-channel: https://raw.githubusercontent.com/haskell/ghcup-metadata/master/ghcup-prereleases-0.0.8.yaml
 
     - name: cache cabal store
       uses: actions/cache@v3
