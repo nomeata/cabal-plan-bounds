@@ -82,7 +82,6 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Detect GHC version
-      if: matrix.plan != 'upper-bounds'
       run: |
         ver=$(grep -o -P '(?<=with-compiler: ghc-).*' ci-configs/${{ matrix.plan }}.config)
         echo "Detected compiler version $ver in ci-configs/${{ matrix.plan }}.config"
@@ -90,7 +89,8 @@ jobs:
 
     - uses: haskell-actions/setup@v2
       with:
-        ghc-version: ${{ env.ghc_version || 'latest' }}
+        ghc-version: ${{ env.ghc_version }}
+        ghcup-release-channel: https://raw.githubusercontent.com/haskell/ghcup-metadata/master/ghcup-prereleases-0.0.8.yaml
 
     - name: cache cabal store
       uses: actions/cache@v3
