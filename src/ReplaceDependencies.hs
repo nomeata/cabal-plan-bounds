@@ -102,7 +102,7 @@ replaceFieldValues valueSubsts input =
                       in unchanged ls1 ++ go (i + length ls1) ss ls2
             | r == i = let (ss1, ss2) = span isHere ss
                       in (ss1, l) : go (i+1) ss2 ls'
-            | otherwise = error $ "Field value out of order"
+            | otherwise = error "Field value out of order"
           where
             isHere (fl, _) = C.positionRow (C.fieldLineAnn fl) == i
             (fl0,_):_ = ss
