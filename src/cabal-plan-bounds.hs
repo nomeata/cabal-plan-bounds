@@ -33,8 +33,8 @@ main = join . customExecParser (prefs showHelpOnError) $
   )
   where
     parser :: Parser (IO ())
-    parser = pure work
-      <*> switch (long "dry-run" <> short 'n' <> help "do not actually write .cabal files")
+    parser = work
+      <$> switch (long "dry-run" <> short 'n' <> help "do not actually write .cabal files")
       <*> switch (long "extend" <> help "only extend version ranges")
       <*> many (option packageVersionP (long "also" <> help "additional versions (pkg-1.2.3 or \"pkg ==1.2.3\")"))
       <*> many (argument
