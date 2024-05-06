@@ -9,6 +9,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text as T
 import Options.Applicative
 import Control.Monad
+import Data.Bifunctor
 import Data.List
 import Cabal.Plan
 import Text.PrettyPrint hiding ((<>))
@@ -103,7 +104,7 @@ cleanChanges :: [(C.PackageName, C.VersionRange, C.VersionRange)]
     -> [(C.PackageName, ([C.VersionRange], C.VersionRange))]
 cleanChanges changes =
     M.toList $
-    M.map (\(old, new) -> (nub old, new)) $ -- No Ord C.VersionRange
+    M.map (first nub) $ -- No Ord C.VersionRange
     M.fromListWith (\(olds1, new1) (olds2, _new2) -> (olds1 <> olds2, new1)) $
     [ (pname, ([old], new)) | (pname, old, new) <- changes, old /= new ]
 
