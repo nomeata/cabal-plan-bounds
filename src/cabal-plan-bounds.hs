@@ -9,6 +9,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text as T
 import Options.Applicative
 import Control.Monad
+import Data.Bifunctor
 import Data.List
 import Cabal.Plan
 import Text.PrettyPrint hiding ((<>))
@@ -33,8 +34,8 @@ main = join . customExecParser (prefs showHelpOnError) $
   )
   where
     parser :: Parser (IO ())
-    parser = pure work
-      <*> switch (long "dry-run" <> short 'n' <> help "do not actually write .cabal files")
+    parser = work
+      <$> switch (long "dry-run" <> short 'n' <> help "do not actually write .cabal files")
       <*> switch (long "extend" <> help "only extend version ranges")
       <*> many (option packageVersionP (long "also" <> help "additional versions (pkg-1.2.3 or \"pkg ==1.2.3\")"))
       <*> many (argument
@@ -103,7 +104,7 @@ cleanChanges :: [(C.PackageName, C.VersionRange, C.VersionRange)]
     -> [(C.PackageName, ([C.VersionRange], C.VersionRange))]
 cleanChanges changes =
     M.toList $
-    M.map (\(old, new) -> (nub old, new)) $ -- No Ord C.VersionRange
+    M.map (first nub) $ -- No Ord C.VersionRange
     M.fromListWith (\(olds1, new1) (olds2, _new2) -> (olds1 <> olds2, new1)) $
     [ (pname, ([old], new)) | (pname, old, new) <- changes, old /= new ]
 
