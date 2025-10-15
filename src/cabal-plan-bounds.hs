@@ -132,11 +132,16 @@ work dry_run extend explicits planfiles cabalfiles = do
 
       let (contents', fieldChanges) = replaceDependencies new_deps contents
 
-      forM_ (cleanChanges fieldChanges) $ \(pn, (olds, new)) ->
-        putStrLn $ render $
-            hang (pretty pn) 4 $ vcat $
-                [ char '-' <+> pretty old | old <- olds ] <>
-                [ char '+' <+> pretty new ]
+      let packageChanges =
+            map (\(pn, (olds, new)) ->
+                  hang (pretty pn) 4 $ vcat $
+                      [ char '-' <+> pretty old | old <- olds ] <>
+                      [ char '+' <+> pretty new ])
+                (cleanChanges fieldChanges)
+      unless (null packageChanges) $
+          putStrLn $ render $
+              (if length cabalfiles > 1 then hang (pretty pname) 4 else id) $
+                  vcat packageChanges
 
       unless dry_run $
           unless (contents == contents') $
