@@ -137,6 +137,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Calculate cabal bounds
     needs:
+    - static
     - merge-plans
     steps:
     - uses: actions/checkout@v5
