@@ -6,6 +6,7 @@ on:
     - master
     tags: "*"
   pull_request:
+  workflow_dispatch:
 
 jobs:
   static:
@@ -24,14 +25,14 @@ jobs:
         ghc-version: '9.4.4'
 
     - name: cache cabal store
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         key: cabal-store-alpine-${{ github.sha }}
         path: ~/.cabal/store
         restore-keys: cabal-store-alpine-
 
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v5
 
     # cannot use cabal install, https://github.com/haskell/cabal/issues/7297
     - name: Build
@@ -51,7 +52,7 @@ jobs:
         gzip -S .linux.gz cabal-plan-bounds
         ls -sh *.gz
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: static-build
         path: |
@@ -64,7 +65,7 @@ jobs:
       configs: ${{ steps.enumerate.outputs.configs }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
     - id: enumerate
       run: |
         ls -1 ci-configs/| grep -o -P '.*(?=.config)'| jq -n -R -c '[inputs]' | tee configs.json
@@ -79,7 +80,7 @@ jobs:
         plan: ${{ fromJSON(needs.enumerate.outputs.configs) }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
 
     - name: Detect GHC version
       run: |
@@ -93,7 +94,7 @@ jobs:
         ghcup-release-channel: https://raw.githubusercontent.com/haskell/ghcup-metadata/master/ghcup-prereleases-0.0.8.yaml
 
     - name: cache cabal store
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         key: cabal-store-${{ runner.os }}-${{ matrix.plan }}-${{ github.sha }}
         path: ~/.cabal/store
@@ -116,22 +117,32 @@ jobs:
     - run: mv dist-newstyle/cache/plan.json plan-${{ matrix.plan }}.json
 
     - name: Upload build plan as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: plans
+        name: plan-${{ matrix.plan }}
         path: plan-${{ matrix.plan }}.json
 
+  merge-plans:
+    runs-on: ubuntu-latest
+    name: Collect cabal plans
+    needs:
+    - build
+    steps:
+    - uses: actions/upload-artifact/merge@v4
+      with:
+        name: plans
+        pattern: plan-*
 
   bounds:
     runs-on: ubuntu-latest
     name: Calculate cabal bounds
     needs:
-    - build
+    - merge-plans
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
 
     - name: Fetch static build
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v5
       with:
         name: static-build
         path: static-build
@@ -140,7 +151,7 @@ jobs:
     - run: chmod +x static-build/cabal-plan-bounds.linux
 
     - name: Load plans
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v5
       with:
         name: plans
         path: plans
@@ -153,7 +164,7 @@ jobs:
 
     - name: Push updated .cabal file if labeled update-bounds
       if: contains(github.event.pull_request.labels.*.name, 'update-bounds')
-      uses: stefanzweifel/git-auto-commit-action@v4
+      uses: stefanzweifel/git-auto-commit-action@v7
       with:
         commit_message: Update cabal bounds based on build plans
         file_pattern: '*.cabal'
@@ -170,12 +181,12 @@ jobs:
     - static
     steps:
     - name: Fetch static build
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v5
       with:
         name: static-build
         path: static-build
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: static-build/*
