@@ -120,17 +120,17 @@ Usage
 $ cabal-plan-bounds --help
 Derives dependency bounds from build plans
 
-Usage: cabal-plan-bounds [-n|--dry-run] [--extend] [--also ARG] [PLAN]
-                         [-c|--cabal CABALFILE]
+Usage: cabal-plan-bounds [-n|--dry-run] [-k|--check] [--extend] [--also ARG]
+                         [PLAN] [-c|--cabal CABALFILE]
 
 Available options:
   -h,--help                Show this help text
   -n,--dry-run             do not actually write .cabal files
+  -k,--check               fail if there are changes (implies ‘--dry-run’)
   --extend                 only extend version ranges
   --also ARG               additional versions (pkg-1.2.3 or "pkg ==1.2.3")
   PLAN                     plan file to read (.json)
   -c,--cabal CABALFILE     cabal file to update (.cabal)
-
 ```
 
 Features and limitations
@@ -167,6 +167,4 @@ Future work (contributions welcome!)
 
 * Proper error handling, e.g. while parsing.
 * A test suite
-* A `--check` mode that does not touch the `.cabal` file, but fails if it would
-  change it (for CI).
 * Update the `tested-with` field according to the compiler versions used.

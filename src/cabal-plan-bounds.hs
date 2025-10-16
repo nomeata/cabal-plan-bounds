@@ -12,6 +12,7 @@ import Control.Monad
 import Data.Bifunctor
 import Data.List
 import Cabal.Plan
+import System.Exit (exitFailure)
 import Text.PrettyPrint hiding ((<>))
 
 import qualified Distribution.PackageDescription.Parsec as C
@@ -36,6 +37,7 @@ main = join . customExecParser (prefs showHelpOnError) $
     parser :: Parser (IO ())
     parser = work
       <$> switch (long "dry-run" <> short 'n' <> help "do not actually write .cabal files")
+      <*> switch (long "check" <> short 'k' <> help "fail if there are changes (implies ‘--dry-run’)")
       <*> switch (long "extend" <> help "only extend version ranges")
       <*> many (option packageVersionP (long "also" <> help "additional versions (pkg-1.2.3 or \"pkg ==1.2.3\")"))
       <*> many (argument
@@ -108,11 +110,11 @@ cleanChanges changes =
     M.fromListWith (\(olds1, new1) (olds2, _new2) -> (olds1 <> olds2, new1)) $
     [ (pname, ([old], new)) | (pname, old, new) <- changes, old /= new ]
 
-work :: Bool -> Bool -> [(C.PackageName, C.Version)] -> [FilePath] -> [FilePath] -> IO ()
-work dry_run extend explicits planfiles cabalfiles = do
+work :: Bool -> Bool -> Bool -> [(C.PackageName, C.Version)] -> [FilePath] -> [FilePath] -> IO ()
+work dry_run check extend explicits planfiles cabalfiles = do
     plans <- mapM decodePlanJson planfiles
 
-    forM_ cabalfiles $ \cabalfile -> do
+    changes <- forM cabalfiles $ \cabalfile -> do
       contents <- BS.readFile cabalfile
 
       -- Figure out package name
@@ -138,12 +140,13 @@ work dry_run extend explicits planfiles cabalfiles = do
                       [ char '-' <+> pretty old | old <- olds ] <>
                       [ char '+' <+> pretty new ])
                 (cleanChanges fieldChanges)
-      unless (null packageChanges) $
+      unless (null packageChanges) $ do
           putStrLn $ render $
               (if length cabalfiles > 1 then hang (pretty pname) 4 else id) $
                   vcat packageChanges
-
-      unless dry_run $
-          unless (contents == contents') $
+          unless (dry_run || check) $
               -- TODO: Use atomic-write
               BS.writeFile cabalfile contents'
+      pure packageChanges
+
+    when (check && not (all null changes)) exitFailure
