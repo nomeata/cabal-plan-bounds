@@ -9,6 +9,7 @@ stdenv.mkDerivation rec {
     haskell.compiler.ghc944
     haskell.compiler.ghc962
     haskell.compiler.ghc981
+    cabal-install
     ghcid
   ];
 }
