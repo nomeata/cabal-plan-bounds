@@ -8,7 +8,7 @@ description:
   system, or implied by compatibility with the tested versions.
 
   So the conclusion must be to __not write build-depends ranges by hand!__
-  Which is an unpleaseant chore instead.
+  Which is an unpleaseant chore anyways.
 
   Instead, __derive the build-depends from your actual CI builds!__
 
